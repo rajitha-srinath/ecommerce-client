@@ -1,10 +1,10 @@
 import React from "react";
 import { useState } from "react";
-import { auth } from "../../firebase";
+import { auth, googleAuthProvider } from "../../firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Button } from "antd";
-import { MailOutlined } from "@ant-design/icons";
+import { MailOutlined, GoogleOutlined } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 
 const Login = ({ history }) => {
@@ -13,6 +13,29 @@ const Login = ({ history }) => {
   const [loading, setLoading] = useState(false);
 
   let dispatch = useDispatch();
+
+  const googleLogin = async () => {
+    auth
+      .signInWithPopup(googleAuthProvider)
+      .then(async (result) => {
+        const { user } = result;
+        const idTokenResult = await user.getIdTokenResult();
+
+        dispatch({
+          type: "LOGGED_IN_USER",
+          payload: {
+            email: user.email,
+            token: idTokenResult.token,
+          },
+        });
+
+        history.push("/");
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.error(err.message);
+      });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,12 +56,11 @@ const Login = ({ history }) => {
         },
       });
 
-      history.push('/');
-
+      history.push("/");
     } catch (error) {
-        console.log(error);
-        toast.error(error.message);
-        setLoading(false);
+      console.log(error);
+      toast.error(error.message);
+      setLoading(false);
     }
   };
 
@@ -47,7 +69,11 @@ const Login = ({ history }) => {
       <div className="container p-5">
         <div className="row">
           <div className="col-md-6 offset-md-3">
-            {loading ? (<h4 className="text-danger">Loading...</h4>) : (<h4>Login</h4>)}
+            {loading ? (
+              <h4 className="text-danger">Loading...</h4>
+            ) : (
+              <h4>Login</h4>
+            )}
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <input
@@ -85,16 +111,15 @@ const Login = ({ history }) => {
               </Button>
 
               <Button
-                onClick={handleSubmit}
-                type="primary"
+                onClick={googleLogin}
+                type="danger"
                 className="mb-3"
                 block
                 shape="round"
-                icon={<MailOutlined />}
+                icon={<GoogleOutlined />}
                 size="large"
-                disabled={!email || password.length < 6}
               >
-                Login with Email/Password
+                Login with Google
               </Button>
             </form>
           </div>
