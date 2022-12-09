@@ -48,6 +48,4 @@ const App = () => {
   );
 };
 
-cxcc
-
 export default App;
